@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:homesecurity/camera%20settings/add_camera_service.dart';
+import 'package:homesecurity/settings/display/theme_proveder.dart';
+import 'package:homesecurity/settings/language/langu_provider.dart';
+import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 
 class AddCameraPage extends StatefulWidget {
   final String token;
-  final bool isdark;
-  AddCameraPage({
+  const AddCameraPage({super.key, 
     required this.token,
-    required this.isdark,
   });
 
   @override
@@ -15,20 +17,25 @@ class AddCameraPage extends StatefulWidget {
 
 class _AddCameraPageState extends State<AddCameraPage> {
   final _formKey = GlobalKey<FormState>();
-  String _selectedCameraName = 'Bedroom'; // Default selected name
+  late String _selectedCameraName;
   String _cameraUrl = '';
+  bool isLoading = false;
 
-  final List<String> cameraNames = [
-    'Bedroom',
-    'Living Room',
-    'Kitchen',
-    'Park',
-    'Garden'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Initialize _selectedCameraName based on the isAmharic flag
+    _selectedCameraName = 'Bedroom';
+  }
+
+  List<String> get cameraNames {
+    return ['Bedroom', 'Living Room', 'Kitchen', 'Park', 'Garden'];
+  }
 
   @override
   Widget build(BuildContext context) {
-    bool isDarkMode = widget.isdark;
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    final isAmharic = Provider.of<LanguageNotifier>(context).language == 'am';
 
     return Scaffold(
       body: Container(
@@ -82,7 +89,7 @@ class _AddCameraPageState extends State<AddCameraPage> {
                       ),
                       const SizedBox(width: 93),
                       Text(
-                        'Add Camera',
+                        isAmharic ? 'ካሜራ ይጨምሩ' : 'Add Camera',
                         style: TextStyle(
                           color: isDarkMode ? Colors.white : Colors.black,
                           fontSize: 23,
@@ -106,9 +113,11 @@ class _AddCameraPageState extends State<AddCameraPage> {
                     ),
                     child: DropdownButtonFormField<String>(
                       value: _selectedCameraName,
-                      decoration:
-                          const InputDecoration(labelText: 'Select Camera Name'),
-                      dropdownColor: const Color(0xff9ecbd5),
+                      decoration: InputDecoration(
+                        labelText:
+                            isAmharic ? 'የካሜራ ስም ይምረጡ' : 'Select Camera Name',
+                      ),
+                      dropdownColor: const Color.fromARGB(255, 96, 93, 74),
                       items: cameraNames.map((name) {
                         return DropdownMenuItem(
                           value: name,
@@ -136,14 +145,13 @@ class _AddCameraPageState extends State<AddCameraPage> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: TextFormField(
-                      initialValue:"https://",
-                      decoration: const InputDecoration(labelText: 'Camera URL'),
-                      // validator: (value) {
-                      //   if (value == null || value.isEmpty) {
-                      //     return 'Please enter a camera URL';
+                      decoration: InputDecoration(
+                          labelText: isAmharic ? 'ካሜራ URL' : 'Camera URL'),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty || value == "https:// ") {
-                          return 'Please enter a camera URL';
+                        if (value == null || value.isEmpty) {
+                          return isAmharic
+                              ? 'እባኮወት የካሜራ URL ያስገቡ'
+                              : 'Please enter a camera URL';
                         }
 
                         String pattern =
@@ -151,7 +159,9 @@ class _AddCameraPageState extends State<AddCameraPage> {
                         RegExp regExp = RegExp(pattern);
 
                         if (!regExp.hasMatch(value)) {
-                          return 'Please enter a valid URL';
+                          return isAmharic
+                              ? 'እባኮወት ትክክለኛ URL ያስገቡ'
+                              : 'Please enter a valid URL';
                         }
                         return null;
                       },
@@ -159,37 +169,80 @@ class _AddCameraPageState extends State<AddCameraPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                    ),
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                        CameraService(widget.token)
-                            .addCamera(_selectedCameraName, _cameraUrl);
-                      }
-                    },
-                    child: Ink(
-                      decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                              colors: [Color(0xff9ecbd5), Color(0xff9ecbd5)]),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                              color: const Color.fromARGB(255, 255, 255, 255))),
-                      child: Container(
-                        height: 50,
-                        alignment: Alignment.center,
-                        child: const Text('Submit',
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ),
+                  isLoading
+                      ? Lottie.asset(
+                          'assets/images/loding.json',
+                          width: 100,
+                          height: 100,
+                        )
+                      : ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                          ),
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                              setState(() => isLoading = true);
+
+                              try {
+                                CameraService(widget.token)
+                                    .addCamera(_selectedCameraName, _cameraUrl);
+                                setState(() => isLoading = false);
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: isAmharic
+                                        ? const Text(
+                                            'ካሜራ በተሳካ ሁኔታ ተጨምረ',
+                                            style:
+                                                TextStyle(color: Colors.black),
+                                          )
+                                        : const Text(
+                                            'Camera added successfully',
+                                            style:
+                                                TextStyle(color: Colors.black),
+                                          ),
+                                    backgroundColor: Colors.green,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              } catch (error) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(isAmharic
+                                        ? 'ካመሬ መጨመር አልተሳካም'
+                                        : 'Failed to add camera'),
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 255, 0, 0),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          child: Ink(
+                            decoration: BoxDecoration(
+                                gradient: const LinearGradient(colors: [
+                                  Color(0xff9ecbd5),
+                                  Color(0xff9ecbd5)
+                                ]),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                    color: const Color.fromARGB(
+                                        255, 255, 255, 255))),
+                            child: Container(
+                              height: 50,
+                              alignment: Alignment.center,
+                              child: Text(isAmharic ? 'ጨርስ' : 'Submit',
+                                  style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ),
                 ],
               ),
             ),

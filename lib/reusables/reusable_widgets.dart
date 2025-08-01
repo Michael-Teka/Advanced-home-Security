@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-// Custom SN Input Field with Icon
 class InputField extends StatelessWidget {
-  const InputField({Key? key}) : super(key: key);
+  const InputField({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +28,7 @@ class InputField extends StatelessWidget {
   }
 }
 
-
-
-  
-
-  class AppBars extends StatelessWidget {
+class AppBars extends StatelessWidget {
   const AppBars({
     super.key,
     required this.isDarkMode,
@@ -65,7 +60,7 @@ class InputField extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(width: 93),
+        const SizedBox(width: 15),
         Text(
           name,
           style: TextStyle(
@@ -78,3 +73,8 @@ class InputField extends StatelessWidget {
     );
   }
 }
+
+const String allbaseUrl = 'http://172.20.10.4:8000/';
+
+
+

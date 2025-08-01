@@ -1,12 +1,11 @@
+import 'package:homesecurity/reusables/reusable_widgets.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class CameraService {
-  final String baseUrl =
-      'http://10.144.36.25:8000/camera/add-camera/';
-        // 'https://advanced-home-security-backend-production.up.railway.app/camera/add-camera/';
+   String get baseUrl =>
 
-      // 'http://127.0.0.1:8000/camera/add-camera/';
+      '${allbaseUrl}camera/add-camera/';
 
   final String token;
 
@@ -33,3 +32,31 @@ class CameraService {
   }
 }
 
+Future<bool> deleteSchedule(int id, String token) async {
+  final url = Uri.parse('${allbaseUrl}camera/add-camera/');
+  final response = await http.delete(
+    url,
+    headers: {
+      'Authorization': 'Token $token',
+      'Content-Type': 'application/json',
+    },
+    body: '{"id": $id}',
+  );
+
+  return response.statusCode == 204;
+}
+
+
+  Future<bool> deleteCamera(int id, String token) async {
+  final url = Uri.parse('${allbaseUrl}camera/add-camera/');
+  final response = await http.delete(
+    url,
+    headers: {
+      'Authorization': 'Token $token',
+      'Content-Type': 'application/json',
+    },
+    body: '{"id": $id}',
+  );
+
+  return response.statusCode == 204;
+}

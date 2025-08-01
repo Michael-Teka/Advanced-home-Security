@@ -1,21 +1,19 @@
-import 'dart:convert';
-
-// import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:ethiopian_datetime/ethiopian_datetime.dart';
 import 'package:flutter/material.dart';
 import 'package:homesecurity/camera%20settings/add_camera.dart';
 import 'package:homesecurity/camera%20settings/camera_lists.dart';
-import 'package:homesecurity/camera%20settings/schedule/noticationService.dart';
-import 'package:homesecurity/detection_history.dart/detection_history_screen.dart';
-// import 'package:homesecurity/door%20settings/door_setting.dart';
-import 'package:homesecurity/door_cam/door_setting.dart';
+import 'package:homesecurity/camera%20settings/schedule/schedule_datas.dart';
+import 'package:homesecurity/door%20settings/door_setting.dart';
+import 'package:homesecurity/loginAndRegistor/login_notifier.dart';
 import 'package:homesecurity/loginAndRegistor/login_page.dart';
+import 'package:homesecurity/profiles/profile_function.dart';
 import 'package:homesecurity/profiles/user_profile.dart';
 import 'package:homesecurity/reusables/camera_in_row.dart';
+import 'package:homesecurity/settings/app_settings.dart';
+import 'package:homesecurity/settings/display/theme_proveder.dart';
+import 'package:homesecurity/settings/language/langu_provider.dart';
 import 'package:lottie/lottie.dart';
-// import 'package:http/http.dart' as http;
-// import 'package:onesignal_flutter/onesignal_flutter.dart';
-// import 'package:homesecurity/services/clock_function.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   final String token;
@@ -27,28 +25,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool isDarkMode = false;
+  @override
+  void initState() {
+    super.initState();
+  }
 
-  // final List<String> carouselImages = [
-  //   'assets/images/image1.png',
-  //   'assets/images/image2.png',
-  //   'assets/images/image3.png',
-  // ];
-  // @override
-// void initState() {
-//   super.initState();
-//   NotificationService.initOneSignal(widget.token);
-// }
-    Future<String> _getGreeting() async {
+  Future<String> _getGreeting() async {
     final hour = DateTime.now().hour;
+    final isAmharic =
+        Provider.of<LanguageNotifier>(context, listen: false).language == 'am';
 
     String greeting;
     if (hour < 12) {
-      greeting = 'Good Morning';
+      greeting = isAmharic ? 'አንዴት አደሩ' : 'Good Morning';
     } else if (hour < 17) {
-      greeting = 'Good Afternoon';
+      greeting = isAmharic ? 'አንዴት ዋሉ' : 'Good Afternoon';
     } else {
-      greeting = 'Good Evening';
+      greeting = isAmharic ? 'አንዴት አመሹ' : 'Good Evening';
     }
 
     return greeting;
@@ -57,143 +50,163 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     String token = widget.token;
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    final isAmharic = Provider.of<LanguageNotifier>(context).language == 'am';
 
-    return MaterialApp(
-      theme: isDarkMode ? ThemeData.dark() : ThemeData.light(),
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Container(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(
-            gradient: isDarkMode
-                ? LinearGradient(
-                    colors: [Colors.black, Colors.grey.shade900],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  )
-                : const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xfff2d4b0),
-                      Color(0xfffad7be),
-                      Color(0xff9ecbd5),
-                      Color(0xff9ecbd5)
-                    ],
-                  ),
-          ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(15, 40, 15, 15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        FutureBuilder<String>(
-                          future: _getGreeting(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            } else if (snapshot.hasError) {
-                              return Text('Error: ${snapshot.error}');
-                            } else if (!snapshot.hasData ||
-                                snapshot.data!.isEmpty) {
-                              return const Text('Hello, User',
-                                  style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'F2'));
-                            } else {
-                              return Text(
-                                snapshot.data!,
-                                style: const TextStyle(
+    return Scaffold(
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        decoration: BoxDecoration(
+          gradient: isDarkMode
+              ? LinearGradient(
+                  colors: [Colors.black, Colors.grey.shade900],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                )
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xfff2d4b0),
+                    Color(0xfffad7be),
+                    Color(0xff9ecbd5),
+                    Color(0xff9ecbd5)
+                  ],
+                ),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 40, 15, 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  child: Row(
+                    children: [
+                      FutureBuilder<String>(
+                        future: _getGreeting(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
+                            return const Text('Hello, User',
+                                style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    fontFamily: 'F2'),
-                              );
-                            }
-                          },
-                        ),
-                        const SizedBox(width: 160),
-                        // Container(
-                        //   width: 100,
-                        //   height: 100,
-                        //   child: Clock(),
-                        // ),
-
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => UserProfile(
-                                      isdark: isDarkMode, token: token)),
+                                    fontFamily: 'F2'));
+                          } else {
+                            return Text(
+                              snapshot.data!,
+                              style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'F2'),
                             );
-                          },
-                          child: const CircleAvatar(
-                            radius: 20,
-                            backgroundImage:
-                                AssetImage('assets/images/image1.png'),
-                          ),
-                        ),
-                      ],
-                    ),
+                          }
+                        },
+                      ),
+                      const Spacer(),
+                      FutureBuilder(
+                        future:
+                            FetchProfileImage.fetchProfileImage(widget.token),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Colors.grey[300],
+                              child: const CircularProgressIndicator(
+                                  strokeWidth: 2),
+                            );
+                          } else if (snapshot.hasData &&
+                              snapshot.data != null) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          UserProfile(token: token)),
+                                );
+                              },
+                              child: CircleAvatar(
+                                radius: 20,
+                                backgroundImage:
+                                    NetworkImage(snapshot.data as String),
+                              ),
+                            );
+                          } else {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          UserProfile(token: token)),
+                                );
+                              },
+                              child: const CircleAvatar(
+                                radius: 20,
+                                backgroundImage:
+                                    AssetImage('assets/images/cctv.png'),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 50),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: CamerasInRow(
-                      isDarkMode: isDarkMode,
-                      token: token,
-                    ),
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  '${DateTime.now().toLocal().day}/${DateTime.now().toLocal().month}/${DateTime.now().toLocal().year} GC',
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: isDarkMode ? Colors.white : Colors.black),
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  '${ETDateTime.now().toLocal().day}/${ETDateTime.now().toLocal().month}/${ETDateTime.now().toLocal().year} EC',
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: isDarkMode ? Colors.white : Colors.black),
+                ),
+                const SizedBox(height: 50),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: CamerasInRow(
+                    isDarkMode: isDarkMode,
+                    token: token,
                   ),
-                  const SizedBox(
-                    height: 30,
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                Center(
+                  child: Lottie.asset(
+                    'assets/images/iconca.json',
+                    width: 300,
+                    height: 300,
+                    fit: BoxFit.fill,
                   ),
-                  Center(
-                    child: Lottie.asset(
-                      'assets/images/caani.json',
-                      width: 300,
-                      height: 200,
-                      fit: BoxFit.fill, // Adjust as needed
-                    ),
-                  ),
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(vertical: 25),
-                  //   child: CarouselSlider(
-                  //     options: CarouselOptions(
-                  //       height: 160,
-                  //       autoPlay: true,
-                  //       enlargeCenterPage: true,
-                  //       enableInfiniteScroll: true,
-                  //       viewportFraction: 0.9,
-                  //     ),
-                  //     items: carouselImages.map((imagePath) {
-                  //       return ClipRRect(
-                  //         borderRadius: BorderRadius.circular(12),
-                  //         child: Container(
-                  //           color: const Color.fromRGBO(0, 212, 255, 100),
-                  //           child: Image.asset(
-                  //             imagePath,
-                  //             fit: BoxFit.cover,
-                  //             width: double.infinity,
-                  //           ),
-                  //         ),
-                  //       );
-                  //     }).toList(),
-                  //   ),
-                  // ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20.0),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -203,7 +216,6 @@ class _HomePageState extends State<HomePage> {
                               MaterialPageRoute(
                                   builder: (context) => CameraLists(
                                         token: token,
-                                        isDarkMode: isDarkMode,
                                       )),
                             );
                           },
@@ -229,12 +241,12 @@ class _HomePageState extends State<HomePage> {
                                   const SizedBox(
                                     width: 8,
                                   ),
-                                  const Text(
-                                    "All Cameras",
+                                  Text(
+                                    isAmharic ? "ካሜራዎች" : "All Cameras",
                                     // style: TextStyle(
                                     //     fontSize: 20,
                                     //     fontWeight: FontWeight.bold),
-                                  ),
+                                  )
                                 ],
                               ),
                             ),
@@ -250,7 +262,6 @@ class _HomePageState extends State<HomePage> {
                               MaterialPageRoute(
                                   builder: (context) => AddCameraPage(
                                         token: token,
-                                        isdark: isDarkMode,
                                       )),
                             );
                           },
@@ -275,12 +286,12 @@ class _HomePageState extends State<HomePage> {
                                 const SizedBox(
                                   width: 8,
                                 ),
-                                const Text(
-                                  "Add Camera",
+                                Text(
+                                  isAmharic ? "ካሜራ ይጨምሩ" : "Add Camera",
                                   // style: TextStyle(
                                   //     fontSize: 20,
                                   //     fontWeight: FontWeight.bold),
-                                ),
+                                )
                               ],
                             ),
                           ),
@@ -288,123 +299,14 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-
-                  // GestureDetector(
-                  //   onTap: () {
-                  //     Navigator.push(
-                  //       context,
-                  //       MaterialPageRoute(
-                  //           builder: (context) => DoorSetting(
-                  //                 name: 'Door Settings',
-                  //                 token: token,
-                  //                 isdark: isDarkMode,
-                  //               )),
-                  //     );
-                  //   },
-                  //   child: Container(
-                  //     height: 60,
-                  //     width: 170,
-                  //     decoration: BoxDecoration(
-                  //       color: isDarkMode
-                  //           ? Colors.grey[900]
-                  //           : const Color.fromARGB(91, 255, 255, 255),
-                  //       borderRadius: BorderRadius.circular(20),
-                  //     ),
-                  //     child: Center(
-                  //             child: Row(
-                  //               children: [
-                  //                 const Padding(
-                  //                     padding: EdgeInsets.only(left: 10)),
-                  //                 SizedBox(
-                  //                     height: 25,
-                  //                     width: 25,
-                  //                     child: Image.asset(
-                  //                         'assets/images/doorsign.png')),
-                  //                 const SizedBox(
-                  //                   width: 8,
-                  //                 ),
-                  //                 const Text(
-                  //                   "Door Camera",
-                  //                   // style: TextStyle(
-                  //                   //     fontSize: 20,
-                  //                   //     fontWeight: FontWeight.bold),
-                  //                 ),
-                  //               ],
-                  //             ),
-                  //           ),
-                  //     // child: Row(
-                  //     //   children: [
-                  //     //     const Padding(padding: EdgeInsets.only(left: 10)),
-                  //     //     SizedBox(
-                  //     //         height: 25,
-                  //     //         width: 25,
-                  //     //         child: Image.asset('assets/images/doorsign.png')),
-                  //     //     const SizedBox(
-                  //     //       width: 8,
-                  //     //     ),
-                  //     //     const Text(
-                  //     //       "Door Camera",
-                  //     //       // style: TextStyle(
-                  //     //       //     fontSize: 20,
-                  //     //       //     fontWeight: FontWeight.bold),
-                  //     //     ),
-                  //     //   ],
-                  //     // ),
-                  //   ),
-                  // ),
-                  // const SizedBox(
-                  //   height: 5,
-                  // ),
-                  //       GestureDetector(
-                  //         onTap: () {
-                  //           Navigator.push(
-                  //             context,
-                  //             MaterialPageRoute(
-                  //                 builder: (context) => DetectionHistoryScreen(
-                  //                       token: token,
-                  //                       // isdark: isDarkMode,
-                  //                       name: 'History',
-                  //                       // isDark: isDarkMode,
-                  //                       isdark: isDarkMode,
-                  //                     )),
-                  //           );
-                  //         },
-                  //         child: Container(
-                  //           height: 60,
-                  //           width: 170,
-                  //           decoration: BoxDecoration(
-                  //             color: isDarkMode
-                  //                 ? Colors.grey[900]
-                  //                 : const Color.fromARGB(91, 255, 255, 255),
-                  //             borderRadius: BorderRadius.circular(20),
-                  //           ),
-                  //           child: Row(
-                  //             children: [
-                  //               const Padding(
-                  //                   padding: EdgeInsets.only(left: 10)),
-                  //               SizedBox(
-                  //                   height: 25,
-                  //                   width: 25,
-                  //                   child: Image.asset(
-                  //                       'assets/images/addcamera.png')),
-                  //               const SizedBox(
-                  //                 width: 8,
-                  //               ),
-                  //               const Text(
-                  //                 "Detection History",
-                  //                 // style: TextStyle(
-                  //                 //     fontSize: 20,
-                  //                 //     fontWeight: FontWeight.bold),
-                  //               ),
-                  //             ],
-                  //           ),
-                  //         ),
-                  //       ),
-                   SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20.0),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -414,57 +316,6 @@ class _HomePageState extends State<HomePage> {
                               MaterialPageRoute(
                                   builder: (context) => DoorSetting(
                                         token: token,
-                                        // isDarkMode: isDarkMode,
-                                        name: 'Door Settings',
-                                        isdark: isDarkMode,
-                                      )),
-                            );
-                          },
-                          child: Container(
-                            height: 60,
-                            width: 170,
-                            decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? Colors.grey[900]
-                                  : const Color.fromARGB(91, 255, 255, 255),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Center(
-                              child: Row(
-                                children: [
-                                  const Padding(
-                                      padding: EdgeInsets.only(left: 10)),
-                                  SizedBox(
-                                      height: 25,
-                                      width: 25,
-                                      child: Image.asset(
-                                          'assets/images/doorsign.png')),
-                                  const SizedBox(
-                                    width: 8,
-                                  ),
-                                  const Text(
-                                    "Door Camera",
-                                    // style: TextStyle(
-                                    //     fontSize: 20,
-                                    //     fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => DetectionHistoryScreen(
-                                        token: token,
-                                        isdark: isDarkMode,
-                                        name: 'History',
                                       )),
                             );
                           },
@@ -485,190 +336,117 @@ class _HomePageState extends State<HomePage> {
                                     height: 25,
                                     width: 25,
                                     child: Image.asset(
-                                        'assets/images/hstryy.png')),
+                                        'assets/images/doorsign.png')),
                                 const SizedBox(
                                   width: 8,
                                 ),
-                                const Text(
-                                  "Detection History",
-                                  // style: TextStyle(
-                                  //     fontSize: 20,
-                                  //     fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                        const SizedBox(
-                    height: 5,
-                  ),
-                  Container(
-                    height: 90,
-                    width: MediaQuery.of(context).size.width - 25,
-                    decoration: BoxDecoration(
-                      color: isDarkMode
-                          ? Colors.grey[900]
-                          : const Color.fromARGB(91, 255, 255, 255),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          const Padding(
-                              padding: EdgeInsets.fromLTRB(15, 10, 0, 0)),
-                          SizedBox(
-                              height: 25,
-                              width: 25,
-                              child: Image.asset('assets/images/mode.png')),
-                          const SizedBox(
-                            width: 5,
-                          ),
-                          isDarkMode
-                              ? const Text(
-                                  "Dark Mode",
+                                Text(
+                                  isAmharic ? "የበር ካሜራ" : "Door Camera",
                                   // style: TextStyle(
                                   //     fontSize: 20,
                                   //     fontWeight: FontWeight.bold),
                                 )
-                              : const Text(
-                                  "Light Mode",
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => AppSettings(
+                                        token: token,
+                                      )),
+                            );
+                          },
+                          child: Container(
+                            height: 60,
+                            width: 170,
+                            decoration: BoxDecoration(
+                              color: isDarkMode
+                                  ? Colors.grey[900]
+                                  : const Color.fromARGB(91, 255, 255, 255),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              children: [
+                                const Padding(
+                                    padding: EdgeInsets.only(left: 10)),
+                                SizedBox(
+                                    height: 25,
+                                    width: 25,
+                                    child: Image.asset(
+                                        'assets/images/setting.png')),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  isAmharic ? "ማስተካከያ" : "Settings",
                                   // style: TextStyle(
                                   //     fontSize: 20,
                                   //     fontWeight: FontWeight.bold),
-                                ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                DetectionSchedulePage(token: token),
+                const SizedBox(
+                  height: 5,
+                ),
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      final loginNotifier =
+                          Provider.of<LoginNotifier>(context, listen: false);
+                      loginNotifier.logout();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const LoginPage()),
+                      );
+                    },
+                    child: Container(
+                      height: 90,
+                      width: 110,
+                      decoration: BoxDecoration(
+                        color: isDarkMode
+                            ? Colors.grey[900]
+                            : const Color.fromARGB(91, 255, 255, 255),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          const Padding(padding: EdgeInsets.only(left: 10)),
+                          SizedBox(
+                              height: 25,
+                              width: 25,
+                              child: Image.asset('assets/images/out.png')),
                           const SizedBox(
-                            width: 170,
+                            width: 8,
                           ),
-                          Switch(
-                            value: isDarkMode,
-                            onChanged: (value) {
-                              setState(() {
-                                isDarkMode = value;
-                              });
-                            },
-                            activeColor: const Color.fromARGB(
-                                255, 255, 255, 255), // Sunny mode color
-                            inactiveThumbColor: const Color.fromARGB(
-                                255, 58, 58, 58), // Night mode color
-                            inactiveTrackColor: Colors.grey,
-                          ),
+                          Text(isAmharic ? "ይውጡ" : "Logout"
+                              // style: TextStyle(
+                              //     fontSize: 20,
+                              //     fontWeight: FontWeight.bold),
+                              )
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  Container(
-                    height: 210,
-                    // width: MediaQuery.of(context).size.width - 25,
-                    decoration: BoxDecoration(
-                      color: isDarkMode
-                          ? Colors.grey[900]
-                          : const Color.fromARGB(91, 255, 255, 255),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Center(child: Text('No Scheduled Data')),
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  // GestureDetector(
-                  //   onTap: () {
-                  //     Navigator.push(
-                  //       context,
-                  //       MaterialPageRoute(
-                  //           builder: (context) => DoorSetting(
-                  //                 name: 'Door Settings',
-                  //                 token: token,
-                  //                 isdark: isDarkMode,
-                  //               )),
-                  //     );
-                  //   },
-                  //   child: Container(
-                  //     height: 90,
-                  //     width: MediaQuery.of(context).size.width - 25,
-                  //     decoration: BoxDecoration(
-                  //       color: isDarkMode
-                  //           ? Colors.grey[900]
-                  //           : const Color.fromARGB(91, 255, 255, 255),
-                  //       borderRadius: BorderRadius.circular(20),
-                  //     ),
-                  //     child: SingleChildScrollView(
-                  //       scrollDirection: Axis.horizontal,
-                  //       child: Row(
-                  //         children: [
-                  //           const Padding(
-                  //               padding: EdgeInsets.fromLTRB(15, 10, 0, 0)),
-                  //           SizedBox(
-                  //               height: 25,
-                  //               width: 25,
-                  //               child: Image.asset('assets/images/mode.png')),
-                  //           const SizedBox(
-                  //             width: 5,
-                  //           ),
-                  //           const Text(
-                  //             "Door Settings",
-                  //             // style: TextStyle(
-                  //             //     fontSize: 20,
-                  //             //     fontWeight: FontWeight.bold),
-                  //           ),
-                  //           // const SizedBox(
-                  //           //   width: 170,
-                  //           // ),
-                  //         ],
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                  // const SizedBox(
-                  //   height: 5,
-                  // ),
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const LoginPage()),
-                        );
-                      },
-                      child: Container(
-                        height: 90,
-                        width: 110,
-                        decoration: BoxDecoration(
-                          color: isDarkMode
-                              ? Colors.grey[900]
-                              : const Color.fromARGB(91, 255, 255, 255),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            const Padding(padding: EdgeInsets.only(left: 10)),
-                            SizedBox(
-                                height: 25,
-                                width: 25,
-                                child: Image.asset('assets/images/out.png')),
-                            const SizedBox(
-                              width: 8,
-                            ),
-                            const Text(
-                              "Logout",
-                              // style: TextStyle(
-                              //     fontSize: 20,
-                              //     fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

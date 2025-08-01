@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:homesecurity/camera%20settings/camera_in_column.dart';
 import 'package:homesecurity/reusables/reusable_widgets.dart';
 import 'package:homesecurity/settings/display/theme_proveder.dart';
 import 'package:homesecurity/settings/language/langu_provider.dart';
 import 'package:provider/provider.dart';
 
-class CameraLists extends StatefulWidget {
+class NotificationPage extends StatefulWidget {
   final String token;
 
-  const CameraLists({required this.token, super.key});
+  const NotificationPage({required this.token, super.key});
 
   @override
-  State<CameraLists> createState() => _CameraListsState();
+  State<NotificationPage> createState() => _NotificationPageState();
 }
 
-class _CameraListsState extends State<CameraLists> {
-
+class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     String token = widget.token;
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-final isAmharic = Provider.of<LanguageNotifier>(context).language == 'am';
+    final isAmharic = Provider.of<LanguageNotifier>(context).language == 'am';
 
     return Scaffold(
       body: Container(
@@ -49,13 +48,14 @@ final isAmharic = Provider.of<LanguageNotifier>(context).language == 'am';
             padding: const EdgeInsets.fromLTRB(15, 40, 15, 15),
             child: Column(
               children: [
-                AppBars(isDarkMode: isDarkMode, name:isAmharic?"ካሜራዎች": 'All Cameras'),
+                AppBars(
+                    isDarkMode: isDarkMode,
+                    name: isAmharic ? 'መልእክት' : 'Notification'),
                 const SizedBox(
                   height: 20,
                 ),
-                CameraInColumn2(
-                  token: token,
-                ),
+                Center(
+                    child: Text(isAmharic ? 'መልእክቶች የለም' : "no notifications"))
               ],
             ),
           ),
